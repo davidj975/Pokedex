@@ -5,7 +5,6 @@ import 'pokemon.dart';
 class PokemonService {
   static const String apiUrl = 'https://pokeapi.co/api/v2/pokemon?limit=1010';
 
-  // Obtiene la lista de todos los Pokémon
   static Future<List<Pokemon>> fetchAllPokemon() async {
     final response = await http.get(Uri.parse(apiUrl));
 
@@ -24,7 +23,6 @@ class PokemonService {
     }
   }
 
-  // Obtiene detalles del Pokémon
   static Future<Map<String, dynamic>> fetchPokemonDetails(String url) async {
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
@@ -34,7 +32,6 @@ class PokemonService {
     }
   }
 
-  // Obtiene la cadena evolutiva del Pokémon
   static Future<List<String>> fetchEvolutionChain(String speciesUrl) async {
     final response = await http.get(Uri.parse(speciesUrl));
     if (response.statusCode != 200) throw Exception('Error al obtener datos de especie');
