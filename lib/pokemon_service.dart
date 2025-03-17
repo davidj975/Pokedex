@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 import 'pokemon.dart';
 
 class PokemonService {
-  static const String apiUrl = 'https://pokeapi.co/api/v2/pokemon?limit=1010';
+  static const String apiUrl = 'https://pokeapi.co/api/v2/pokemon?limit=1025';
 
   static Future<List<Pokemon>> fetchAllPokemon() async {
     final response = await http.get(Uri.parse(apiUrl));
