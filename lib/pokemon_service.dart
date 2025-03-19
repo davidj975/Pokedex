@@ -7,11 +7,12 @@ class PokemonService {
 
   static Future<List<Pokemon>> fetchAllPokemon() async {
     final response = await http.get(Uri.parse(apiUrl));
-
     if (response.statusCode == 200) {
       final data = json.decode(response.body);
-      return data['results'].map<Pokemon>((item) {
-        final id = item['url'].split('/')[6];
+      // Extraer id de la URL para construir la imagen
+      return (data['results'] as List).map<Pokemon>((item) {
+        final segments = item['url'].split('/');
+        final id = segments[segments.length - 2];
         return Pokemon(
           name: item['name'],
           imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png',
@@ -32,31 +33,20 @@ class PokemonService {
     }
   }
 
-  static Future<List<String>> fetchEvolutionChain(String speciesUrl) async {
-    final response = await http.get(Uri.parse(speciesUrl));
-    if (response.statusCode != 200) throw Exception('Error al obtener datos de especie');
-
-    final speciesData = json.decode(response.body);
-    final evolutionUrl = speciesData['evolution_chain']['url'];
-    final evolutionResponse = await http.get(Uri.parse(evolutionUrl));
-
-    if (evolutionResponse.statusCode != 200) throw Exception('Error al obtener evolución');
-
-    final evolutionData = json.decode(evolutionResponse.body);
-    List<String> evolutionImages = [];
-
-    var currentStage = evolutionData['chain'];
-    while (currentStage != null) {
-      final speciesName = currentStage['species']['name'];
-      final id = currentStage['species']['url'].split('/')[6];
-      evolutionImages.add('https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png');
-
-      if (currentStage['evolves_to'].isNotEmpty) {
-        currentStage = currentStage['evolves_to'][0];
-      } else {
-        break;
-      }
+  static Future<Map<String, dynamic>> fetchPokemonEvolutionChain(String speciesUrl) async {
+    // Primero obtenemos los detalles de la especie
+    final speciesResponse = await http.get(Uri.parse(speciesUrl));
+    if (speciesResponse.statusCode != 200) {
+      throw Exception('Error al obtener la especie del Pokémon');
     }
-    return evolutionImages;
+    final speciesData = json.decode(speciesResponse.body);
+    final evolutionChainUrl = speciesData['evolution_chain']['url'];
+
+    final evolutionResponse = await http.get(Uri.parse(evolutionChainUrl));
+    if (evolutionResponse.statusCode == 200) {
+      return json.decode(evolutionResponse.body);
+    } else {
+      throw Exception('Error al obtener la cadena evolutiva del Pokémon');
+    }
   }
 }

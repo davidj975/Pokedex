@@ -13,7 +13,7 @@ class PokemonDetailScreen extends StatefulWidget {
 
 class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
   Map<String, dynamic>? _pokemonDetails;
-  List<String>? _evolutionChain;
+  Map<String, dynamic>? _evolutionChain;
   bool _isLoading = true;
   bool _hasError = false;
 
@@ -25,11 +25,12 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
 
   Future<void> _fetchDetails() async {
     try {
-      final data = await PokemonService.fetchPokemonDetails(widget.pokemon.url);
-      final evolutionData = await PokemonService.fetchEvolutionChain(data['species']['url']);
+      final details = await PokemonService.fetchPokemonDetails(widget.pokemon.url);
+      final speciesUrl = details['species']['url'];
+      final evolutionChain = await PokemonService.fetchPokemonEvolutionChain(speciesUrl);
       setState(() {
-        _pokemonDetails = data;
-        _evolutionChain = evolutionData;
+        _pokemonDetails = details;
+        _evolutionChain = evolutionChain;
         _isLoading = false;
       });
     } catch (error) {
@@ -40,55 +41,75 @@ class _PokemonDetailScreenState extends State<PokemonDetailScreen> {
     }
   }
 
+  Widget _buildEvolutionChain(Map<String, dynamic> evolutionChain) {
+    List<Widget> evolutionWidgets = [];
+    var chain = evolutionChain['chain'];
+    // Iteramos sobre la cadena evolutiva
+    while (chain != null) {
+      final speciesName = chain['species']['name'];
+      // Extraemos el id desde la URL de la especie
+      final segments = chain['species']['url'].split('/');
+      final id = segments[segments.length - 2];
+      evolutionWidgets.add(
+        Padding(
+          padding: const EdgeInsets.only(right: 8.0),
+          child: Column(
+            children: [
+              Image.network(
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png',
+                height: 80,
+              ),
+              Text(speciesName.toUpperCase(), style: TextStyle(fontSize: 16)),
+            ],
+          ),
+        ),
+      );
+      if (chain['evolves_to'] != null && (chain['evolves_to'] as List).isNotEmpty) {
+        chain = chain['evolves_to'][0];
+      } else {
+        chain = null;
+      }
+    }
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(children: evolutionWidgets),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: Text(widget.pokemon.name.toUpperCase(), style: TextStyle(color: Colors.white)),
-        centerTitle: true,
+        title: Text(widget.pokemon.name.toUpperCase()),
       ),
       body: _isLoading
-          ? Center(child: CircularProgressIndicator(color: Colors.white))
+          ? Center(child: CircularProgressIndicator())
           : _hasError
-          ? Center(child: Text('Error al cargar los datos', style: TextStyle(color: Colors.white)))
-          : Padding(
+          ? Center(child: Text('Error al cargar los detalles'))
+          : SingleChildScrollView(
         padding: const EdgeInsets.all(12.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Image.network(widget.pokemon.imageUrl, height: 150),
-            SizedBox(height: 12),
-            Text(widget.pokemon.name.toUpperCase(),
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+            Center(child: Image.network(widget.pokemon.imageUrl, height: 150)),
             SizedBox(height: 20),
-            _pokemonDetails != null
-                ? Column(
-              children: [
-                Text("Tipo: ${_pokemonDetails!['types'][0]['type']['name'].toUpperCase()}",
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
-                SizedBox(height: 10),
-                Text("Peso: ${_pokemonDetails!['weight'] / 10} kg",
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
-                SizedBox(height: 10),
-                Text("Altura: ${_pokemonDetails!['height'] / 10} m",
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
-                SizedBox(height: 20),
-                Text("Evolución", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-                _evolutionChain != null
-                    ? Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: _evolutionChain!
-                      .map((imageUrl) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Image.network(imageUrl, height: 80),
-                  ))
-                      .toList(),
-                )
-                    : CircularProgressIndicator(color: Colors.white),
-              ],
-            )
-                : Container(),
+            Center(
+              child: Text(widget.pokemon.name.toUpperCase(),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            ),
+            SizedBox(height: 20),
+            if (_pokemonDetails != null) ...[
+              Text("Tipo: ${_pokemonDetails!['types'][0]['type']['name'].toUpperCase()}",
+                  style: TextStyle(fontSize: 18)),
+              Text("Peso: ${_pokemonDetails!['weight'] / 10} kg", style: TextStyle(fontSize: 18)),
+              Text("Altura: ${_pokemonDetails!['height'] / 10} m", style: TextStyle(fontSize: 18)),
+              SizedBox(height: 20),
+            ],
+            if (_evolutionChain != null) ...[
+              Text("Evolución:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              SizedBox(height: 10),
+              _buildEvolutionChain(_evolutionChain!),
+            ],
           ],
         ),
       ),

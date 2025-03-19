@@ -8,7 +8,7 @@ class Pokemon {
   factory Pokemon.fromJson(Map<String, dynamic> json) {
     return Pokemon(
       name: json['name'],
-      imageUrl: json['sprites']['front_default'],
+      imageUrl: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${json['id']}.png',
       url: json['species']['url'],
     );
   }
