@@ -49,4 +49,21 @@ class PokemonService {
       throw Exception('Error al obtener la cadena evolutiva del Pokémon');
     }
   }
+
+  static Future<Pokemon> fetchPokemonByName(String name) async {
+    final response = await http.get(
+      Uri.parse('https://pokeapi.co/api/v2/pokemon/$name')
+    );
+    
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return Pokemon(
+        name: name,
+        url: 'https://pokeapi.co/api/v2/pokemon/$name',
+        imageUrl: data['sprites']['other']['official-artwork']['front_default'],
+      );
+    } else {
+      throw Exception('Error al cargar el Pokémon');
+    }
+  }
 }

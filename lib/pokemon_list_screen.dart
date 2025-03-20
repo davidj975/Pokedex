@@ -2,19 +2,74 @@ import 'package:flutter/material.dart';
 import 'pokemon.dart';
 import 'pokemon_detail_screen.dart';
 import 'pokemon_service.dart';
+import 'favorites_manager.dart';
 
 class PokemonListScreen extends StatefulWidget {
+  const PokemonListScreen({super.key});
+
   @override
   _PokemonListScreenState createState() => _PokemonListScreenState();
 }
 
 class _PokemonListScreenState extends State<PokemonListScreen> {
   late Future<List<Pokemon>> _pokemonList;
+  Map<String, bool> _favoritesMap = {};
 
   @override
   void initState() {
     super.initState();
     _pokemonList = PokemonService.fetchAllPokemon();
+    _loadFavorites();
+  }
+
+  Future<void> _loadFavorites() async {
+    final favorites = await FavoritesManager.getFavorites();
+    setState(() {
+      for (var name in favorites) {
+        _favoritesMap[name] = true;
+      }
+    });
+  }
+
+  Future<void> _toggleFavorite(Pokemon pokemon) async {
+    await FavoritesManager.toggleFavorite(pokemon.name);
+    await _loadFavorites();
+  }
+
+  Widget _buildPokemonCard(Pokemon pokemon) {
+    final isFavorite = _favoritesMap[pokemon.name] ?? false;
+    
+    return Card(
+      child: Stack(
+        children: [
+          // Existing Pokemon card content
+          ListTile(
+            leading: Image.network(pokemon.imageUrl),
+            title: Text(pokemon.name),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => PokemonDetailScreen(pokemon: pokemon),
+                ),
+              ).then((_) => _loadFavorites()); // Refresh favorites when returning
+            },
+          ),
+          // Favorite button
+          Positioned(
+            top: 8,
+            right: 8,
+            child: IconButton(
+              icon: Icon(
+                isFavorite ? Icons.favorite : Icons.favorite_border,
+                color: isFavorite ? Colors.red : null,
+              ),
+              onPressed: () => _toggleFavorite(pokemon),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -22,94 +77,24 @@ class _PokemonListScreenState extends State<PokemonListScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Pokédex'),
+        centerTitle: true,
       ),
       body: FutureBuilder<List<Pokemon>>(
         future: _pokemonList,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar los Pokémon'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No se encontraron Pokémon'));
-          } else {
-            final pokemonList = snapshot.data!;
-            return GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: pokemonList.length,
+          if (snapshot.hasData) {
+            return ListView.builder(
+              itemCount: snapshot.data!.length,
               itemBuilder: (context, index) {
-                final pokemon = pokemonList[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => PokemonDetailScreen(pokemon: pokemon),
-                      ),
-                    );
-                  },
-                  child: FutureBuilder<Map<String, dynamic>>(
-                    future: PokemonService.fetchPokemonDetails(pokemon.url),
-                    builder: (context, detailsSnapshot) {
-                      if (detailsSnapshot.connectionState == ConnectionState.done &&
-                          detailsSnapshot.hasData) {
-                        var pokemonType = detailsSnapshot.data!['types'][0]['type']['name'];
-                        return Card(
-                          color: _getTypeColor(pokemonType),
-                          elevation: 5,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Image.network(pokemon.imageUrl, height: 100),
-                              SizedBox(height: 10),
-                              Text(pokemon.name.toUpperCase(), style: TextStyle(fontSize: 16)),
-                            ],
-                          ),
-                        );
-                      } else {
-                        return Card(
-                          elevation: 5,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              CircularProgressIndicator(),
-                            ],
-                          ),
-                        );
-                      }
-                    },
-                  ),
-                );
+                return _buildPokemonCard(snapshot.data![index]);
               },
             );
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
           }
+          return Center(child: CircularProgressIndicator());
         },
       ),
     );
-  }
-
-  Color _getTypeColor(String type) {
-    switch (type) {
-      case 'fire':
-        return Colors.red;
-      case 'water':
-        return Colors.blue;
-      case 'grass':
-        return Colors.green;
-      case 'electric':
-        return Colors.yellow;
-      case 'bug':
-        return Colors.greenAccent;
-      case 'normal':
-        return Colors.grey;
-      case 'psychic':
-        return Colors.purple;
-      default:
-        return Colors.white;
-    }
   }
 }

@@ -7,6 +7,8 @@ void main() {
 }
 
 class PokedexApp extends StatefulWidget {
+  const PokedexApp({super.key});
+
   @override
   _PokedexAppState createState() => _PokedexAppState();
 }

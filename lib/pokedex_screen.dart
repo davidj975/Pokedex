@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'pokemon.dart';
 import 'pokemon_service.dart';
 import 'pokemon_detail_screen.dart';
+import 'favorites_screen.dart';
 
 class PokedexScreen extends StatefulWidget {
   final VoidCallback toggleTheme;
   final bool isDarkMode;
 
-  PokedexScreen({required this.toggleTheme, required this.isDarkMode});
+  const PokedexScreen({super.key, required this.toggleTheme, required this.isDarkMode});
 
   @override
   _PokedexScreenState createState() => _PokedexScreenState();
@@ -120,66 +121,63 @@ class _PokedexScreenState extends State<PokedexScreen> with SingleTickerProvider
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Pokédex', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.red,
-        centerTitle: true,
+        title: Text('Pokédex'),
+        centerTitle: false, // Move title to left
         actions: [
+          // View toggle button
           IconButton(
-            icon: Icon(Icons.brightness_6, color: Colors.white),
-            onPressed: widget.toggleTheme,
-          ),
-          IconButton(
-            icon: Icon(_isGridView ? Icons.list : Icons.grid_view, color: Colors.white),
+            icon: Icon(_isGridView ? Icons.list : Icons.grid_view),
             onPressed: () {
               setState(() {
                 _isGridView = !_isGridView;
               });
             },
           ),
+          // Favorites button
+          IconButton(
+            icon: const Icon(Icons.favorite),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => FavoritesScreen(isGridView: _isGridView)),
+              );
+            },
+          ),
+          // Theme toggle
+          IconButton(
+            icon: Icon(widget.isDarkMode ? Icons.dark_mode : Icons.light_mode),
+            onPressed: widget.toggleTheme,
+          ),
         ],
       ),
       body: _isLoading
           ? Center(child: CircularProgressIndicator())
-          : Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar Pokémon...',
-                filled: true,
-                fillColor: Colors.grey[200],
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                prefixIcon: Icon(Icons.search, color: Colors.red),
-              ),
-              onChanged: _filterPokemon,
-            ),
-          ),
-          Expanded(
-            child: _isGridView
-                ? GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 3 / 2,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: _filteredPokemonList.length,
-              itemBuilder: (context, index) {
-                final pokemon = _filteredPokemonList[index];
-                return _buildPokemonCard(pokemon);
-              },
-            )
-                : ListView.builder(
-              itemCount: _filteredPokemonList.length,
-              itemBuilder: (context, index) {
-                final pokemon = _filteredPokemonList[index];
-                return _buildPokemonCard(pokemon);
-              },
-            ),
-          ),
-        ],
-      ),
+          : _buildPokemonList(),
     );
+  }
+
+  Widget _buildPokemonList() {
+    if (_isGridView) {
+      return GridView.builder(
+        padding: EdgeInsets.all(8),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 1,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemCount: _filteredPokemonList.length,
+        itemBuilder: (context, index) {
+          return _buildPokemonCard(_filteredPokemonList[index]);
+        },
+      );
+    } else {
+      return ListView.builder(
+        itemCount: _filteredPokemonList.length,
+        itemBuilder: (context, index) {
+          return _buildPokemonCard(_filteredPokemonList[index]);
+        },
+      );
+    }
   }
 }
