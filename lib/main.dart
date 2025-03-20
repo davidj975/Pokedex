@@ -1,63 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'pokedex_screen.dart';
+import 'pokemon_list.dart';
 
 void main() {
-  runApp(PokedexApp());
+  runApp(const MyApp());
 }
 
-class PokedexApp extends StatefulWidget {
-  const PokedexApp({super.key});
-
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+  
   @override
-  _PokedexAppState createState() => _PokedexAppState();
+  State<MyApp> createState() => _MyAppState();
 }
 
-class _PokedexAppState extends State<PokedexApp> {
-  bool _isDarkMode = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadTheme();
-  }
-
-  Future<void> _loadTheme() async {
-    final prefs = await SharedPreferences.getInstance();
+class _MyAppState extends State<MyApp> {
+  bool isDarkMode = false;
+  
+  void toggleDarkMode() {
     setState(() {
-      _isDarkMode = prefs.getBool('darkMode') ?? false;
+      isDarkMode = !isDarkMode;
     });
   }
-
-  void _toggleTheme() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _isDarkMode = !_isDarkMode;
-      prefs.setBool('darkMode', _isDarkMode);
-    });
-  }
-
+  
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Pokédex',
-      theme: _isDarkMode
-          ? ThemeData.dark().copyWith(
-        primaryColor: Colors.red[800],
-        scaffoldBackgroundColor: Colors.black,
-        textTheme: TextTheme(
-          bodyMedium: TextStyle(color: Colors.white),
-        ),
-      )
-          : ThemeData(
-        primaryColor: Colors.red[800],
+      debugShowCheckedModeBanner: false, // Eliminado debug
+      theme: ThemeData(
+        brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
-        textTheme: TextTheme(
-          bodyMedium: TextStyle(color: Colors.black),
+        appBarTheme: const AppBarTheme(
+          color: Colors.white,
+          iconTheme: IconThemeData(color: Colors.black),
+          titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
         ),
+        cardColor: Colors.white,
       ),
-      home: PokedexScreen(toggleTheme: _toggleTheme, isDarkMode: _isDarkMode),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        appBarTheme: const AppBarTheme(
+          color: Colors.black,
+          iconTheme: IconThemeData(color: Colors.white),
+          titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+        ),
+        cardColor: Colors.black, // Tarjetas en negro en tema oscuro
+      ),
+      themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
+      home: PokemonList(toggleDarkMode: toggleDarkMode),
     );
   }
 }
