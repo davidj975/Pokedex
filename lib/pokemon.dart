@@ -40,7 +40,6 @@ class Pokemon {
     );
   }
 
-  // Devuelve un color basado en el primer tipo del Pokémon
   Color getTypeColor() {
     Map<String, Color> typeColors = {
       'fire': Colors.red,

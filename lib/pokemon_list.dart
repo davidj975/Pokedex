@@ -25,7 +25,7 @@ class _PokemonListState extends State<PokemonList> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  // Parámetros para lazy loading
+  // Parámetros lazy loading
   final int _limit = 20;
   int _offset = 0;
   final int _maxPokemon = 1025;
@@ -34,9 +34,9 @@ class _PokemonListState extends State<PokemonList> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  String selectedType = 'All'; // Added for type filtering
-  bool sortByAlphabet = false; // Added for sorting
-  Map<int, Pokemon> pokemonCache = {};  // Add cache
+  String selectedType = 'All';
+  bool sortByAlphabet = false;
+  Map<int, Pokemon> pokemonCache = {};
 
   @override
   void initState() {
@@ -177,7 +177,6 @@ class _PokemonListState extends State<PokemonList> {
     }
 
     try {
-      // Primero intentar buscar por nombre exacto en la API
       try {
         final response = await http.get(
           Uri.parse('https://pokeapi.co/api/v2/pokemon/${searchQuery}/'),
@@ -199,7 +198,6 @@ class _PokemonListState extends State<PokemonList> {
         print('No exact match found, trying ID search');
       }
 
-      // Si no se encuentra por nombre, intentar por ID
       final id = int.tryParse(query);
       if (id != null && id > 0 && id <= _maxPokemon) {
         final pokemon = await fetchSinglePokemon(id);
@@ -214,7 +212,6 @@ class _PokemonListState extends State<PokemonList> {
         }
       }
 
-      // Si no se encuentra exactamente, buscar coincidencias parciales en el caché
       setState(() {
         filteredPokemon = allPokemon
             .where((pokemon) =>
@@ -285,7 +282,7 @@ class _PokemonListState extends State<PokemonList> {
     });
   }
 
-  // Función para mostrar un Pokémon aleatorio
+  // mostrar uno aleatorio
   void showRandomPokemon() {
     if (allPokemon.isNotEmpty) {
       final randomIndex = Random().nextInt(allPokemon.length);
@@ -310,7 +307,6 @@ class _PokemonListState extends State<PokemonList> {
 
     return Scaffold(
       appBar: AppBar(
-        // Se reemplaza el título por una search bar
         title: TextField(
           controller: _searchController,
           onChanged: searchPokemon,
@@ -349,7 +345,6 @@ class _PokemonListState extends State<PokemonList> {
             icon: Icon(isGridView ? Icons.list : Icons.grid_on),
             onPressed: toggleView,
           ),
-          // Nuevo botón para mostrar un Pokémon aleatorio
           IconButton(
             icon: const Icon(Icons.shuffle),
             onPressed: showRandomPokemon,

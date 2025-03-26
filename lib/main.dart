@@ -24,7 +24,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false, // Eliminado debug
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.light,
         scaffoldBackgroundColor: Colors.white,
@@ -43,7 +43,7 @@ class _MyAppState extends State<MyApp> {
           iconTheme: IconThemeData(color: Colors.white),
           titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
         ),
-        cardColor: Colors.black, // Tarjetas en negro en tema oscuro
+        cardColor: Colors.black,
       ),
       themeMode: isDarkMode ? ThemeMode.dark : ThemeMode.light,
       home: PokemonList(toggleDarkMode: toggleDarkMode),

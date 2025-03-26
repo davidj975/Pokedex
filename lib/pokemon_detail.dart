@@ -6,7 +6,6 @@ class PokemonDetailScreen extends StatelessWidget {
 
   const PokemonDetailScreen({super.key, required this.pokemon});
 
-  // Retorna un degradado basado en el color del Pokémon y adaptado al brillo del tema
   LinearGradient getGradient(BuildContext context) {
     final baseColor = pokemon.getTypeColor();
     final brightness = Theme.of(context).brightness;
@@ -31,7 +30,6 @@ class PokemonDetailScreen extends StatelessWidget {
     }
   }
 
-  // Barra de progreso personalizada para las estadísticas
   Widget buildStatBar(BuildContext context, String label, int value) {
     final width = MediaQuery.of(context).size.width * 0.5;
     final textStyle = Theme.of(context).textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold);
@@ -79,7 +77,6 @@ class PokemonDetailScreen extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar los tipos con su color correspondiente
   Widget buildTypeChips() {
     return Wrap(
       spacing: 8,
@@ -108,7 +105,6 @@ class PokemonDetailScreen extends StatelessWidget {
     );
   }
 
-  // Mapeo de colores según el tipo
   Color getTypeColor(String type) {
     Map<String, Color> typeColors = {
       'fire': Colors.red,
@@ -173,7 +169,7 @@ class PokemonDetailScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Datos básicos
+
                   Card(
                     color: theme.cardColor,
                     elevation: 4,
@@ -218,7 +214,7 @@ class PokemonDetailScreen extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
-                          buildTypeChips(), // Tipos con su color correspondiente
+                          buildTypeChips(),
                         ],
                       ),
                     ),
