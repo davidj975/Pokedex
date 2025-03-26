@@ -25,7 +25,7 @@ class _PokemonListState extends State<PokemonList> {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
       FlutterLocalNotificationsPlugin();
 
-  // Parámetros lazy loading
+  // Parámetros para lazy loading
   final int _limit = 20;
   int _offset = 0;
   final int _maxPokemon = 1025;
@@ -34,9 +34,9 @@ class _PokemonListState extends State<PokemonList> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
 
-  String selectedType = 'All';
-  bool sortByAlphabet = false;
-  Map<int, Pokemon> pokemonCache = {};
+  String selectedType = 'All'; // Added for type filtering
+  bool sortByAlphabet = false; // Added for sorting
+  Map<int, Pokemon> pokemonCache = {};  // Add cache
 
   @override
   void initState() {
@@ -177,6 +177,7 @@ class _PokemonListState extends State<PokemonList> {
     }
 
     try {
+
       try {
         final response = await http.get(
           Uri.parse('https://pokeapi.co/api/v2/pokemon/${searchQuery}/'),
@@ -198,6 +199,7 @@ class _PokemonListState extends State<PokemonList> {
         print('No exact match found, trying ID search');
       }
 
+
       final id = int.tryParse(query);
       if (id != null && id > 0 && id <= _maxPokemon) {
         final pokemon = await fetchSinglePokemon(id);
@@ -211,6 +213,7 @@ class _PokemonListState extends State<PokemonList> {
           return;
         }
       }
+
 
       setState(() {
         filteredPokemon = allPokemon
@@ -249,7 +252,7 @@ class _PokemonListState extends State<PokemonList> {
       filteredPokemon = allPokemon.where((pokemon) {
         return type == 'All' || pokemon.types.contains(type.toLowerCase());
       }).toList();
-      sortPokemon(); // Ensure sorting is applied after filtering
+      sortPokemon();
     });
   }
 
@@ -282,7 +285,7 @@ class _PokemonListState extends State<PokemonList> {
     });
   }
 
-  // mostrar uno aleatorio
+  //pokémon aleatorio
   void showRandomPokemon() {
     if (allPokemon.isNotEmpty) {
       final randomIndex = Random().nextInt(allPokemon.length);
@@ -307,6 +310,7 @@ class _PokemonListState extends State<PokemonList> {
 
     return Scaffold(
       appBar: AppBar(
+
         title: TextField(
           controller: _searchController,
           onChanged: searchPokemon,
@@ -318,7 +322,7 @@ class _PokemonListState extends State<PokemonList> {
           style: const TextStyle(fontSize: 18),
         ),
         actions: [
-          // Dropdown for type filtering
+
           DropdownButton<String>(
             value: selectedType,
             items: ['All', 'Fire', 'Water', 'Grass', 'Electric', 'Ice', 'Fighting', 'Poison', 'Ground', 'Flying', 'Psychic', 'Bug', 'Rock', 'Ghost', 'Dragon', 'Dark', 'Steel', 'Fairy']
@@ -345,6 +349,7 @@ class _PokemonListState extends State<PokemonList> {
             icon: Icon(isGridView ? Icons.list : Icons.grid_on),
             onPressed: toggleView,
           ),
+          // botón aleatorio
           IconButton(
             icon: const Icon(Icons.shuffle),
             onPressed: showRandomPokemon,
@@ -391,7 +396,7 @@ class _PokemonListState extends State<PokemonList> {
           elevation: 5,
           child: ListTile(
             leading: Image.network(
-              pokemon.imageUrl, // No changes needed, already uses imageUrl
+              pokemon.imageUrl,
             ),
             title: Text(pokemon.name),
             trailing: IconButton(
